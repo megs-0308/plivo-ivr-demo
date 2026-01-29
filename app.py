@@ -11,11 +11,6 @@ PLIVO_NUMBER = "14692463987"
 DESTINATION_NUMBER = "917892490729"
 
 
-@app.route("/")
-def home():
-    return "Plivo IVR App Running"
-
-
 @app.route("/call")
 def make_call():
     client = plivo.RestClient(AUTH_ID, AUTH_TOKEN)
@@ -24,105 +19,75 @@ def make_call():
         from_=PLIVO_NUMBER,
         to_=DESTINATION_NUMBER,
         answer_url="https://redly-nonadverbial-alexis.ngrok-free.dev/ivr",
-        answer_method="POST"
+        answer_method="GET"
     )
+    return "Call triggered"
 
-    return "Outbound call triggered"
 
-
+# ---------- LEVEL 1 ----------
 @app.route("/ivr", methods=["GET", "POST"])
 def ivr():
-    response = xml.ResponseElement()
+    r = xml.ResponseElement()
 
-    get_digits = response.add(
+    gd = r.add(
         xml.GetDigitsElement(
             action="https://redly-nonadverbial-alexis.ngrok-free.dev/language",
             method="POST",
-            timeout=15,
+            timeout=10,
             num_digits=1,
-            retries=1
+            bargein="true"
         )
     )
 
-    get_digits.add(
-        xml.SpeakElement(
-            "Press 1 for English. Press 2 for Spanish."
-        )
-    )
+    gd.add(xml.SpeakElement(
+        "Press 1 for English. Press 2 for Spanish."
+    ))
 
-    response.add(
-        xml.RedirectElement(
-            "https://redly-nonadverbial-alexis.ngrok-free.dev/ivr",
-            method="POST"
-        )
-    )
-
-    return Response(response.to_string(), mimetype="text/xml")
+    return Response(r.to_string(), mimetype="text/xml")
 
 
+# ---------- LEVEL 2 ----------
 @app.route("/language", methods=["POST"])
 def language():
     digit = request.form.get("Digits")
-    response = xml.ResponseElement()
+    r = xml.ResponseElement()
 
     if digit in ["1", "2"]:
-        get_digits = response.add(
+        gd = r.add(
             xml.GetDigitsElement(
                 action="https://redly-nonadverbial-alexis.ngrok-free.dev/option",
                 method="POST",
-                timeout=15,
+                timeout=10,
                 num_digits=1,
-                retries=1
+                bargein="true"
             )
         )
 
-        get_digits.add(
-            xml.SpeakElement(
-                "Press 1 to hear a message. Press 2 to talk to an associate."
-            )
-        )
-
-        response.add(
-            xml.RedirectElement(
-                "https://redly-nonadverbial-alexis.ngrok-free.dev/language",
-                method="POST"
-            )
-        )
-
+        gd.add(xml.SpeakElement(
+            "Press 1 to hear a message. Press 2 to talk to an associate."
+        ))
     else:
-        response.add(xml.SpeakElement("Invalid language selection."))
-        response.add(
-            xml.RedirectElement(
-                "https://redly-nonadverbial-alexis.ngrok-free.dev/ivr",
-                method="POST"
-            )
-        )
+        r.add(xml.SpeakElement("Invalid input. Goodbye."))
 
-    return Response(response.to_string(), mimetype="text/xml")
+    return Response(r.to_string(), mimetype="text/xml")
 
 
-
+# ---------- OPTION ----------
 @app.route("/option", methods=["POST"])
 def option():
     digit = request.form.get("Digits")
-    response = xml.ResponseElement()
+    r = xml.ResponseElement()
 
     if digit == "1":
-        response.add(
-            xml.PlayElement(
-                "https://github.com/megs-0308/plivo-ivr-demo/raw/refs/heads/main/demo_audio.mp3 "
-            )
-        )
+        r.add(xml.PlayElement(
+            "https://raw.githubusercontent.com/megs-0308/plivo-ivr-demo/main/demo_audio.mp3"
+        ))
     elif digit == "2":
-        response.add(
-            xml.DialElement("14692463990")
-        )
+        r.add(xml.DialElement("917892753709"))
     else:
-        response.add(xml.SpeakElement("Invalid option."))
+        r.add(xml.SpeakElement("Invalid option."))
 
-    return Response(response.to_string(), mimetype="text/xml")
-
-
+    return Response(r.to_string(), mimetype="text/xml")
 
 
 if __name__ == "__main__":
