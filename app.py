@@ -4,8 +4,14 @@ from plivo import xml
 
 app = Flask(__name__)
 
-AUTH_ID = "MANZJJOGRLNZK0ZMZIMM"
-AUTH_TOKEN = "NmU2ZmRhMjYtOTE1OS00YWRiLWJlNmEtNTIxYzUy"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+AUTH_ID = os.getenv("PLIVO_AUTH_ID")
+AUTH_TOKEN = os.getenv("PLIVO_AUTH_TOKEN")
+
 
 PLIVO_NUMBER = "+14692463987"
 CALLER_NUMBER = "+917892490729"
