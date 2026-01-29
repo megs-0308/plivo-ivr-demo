@@ -110,7 +110,7 @@ def option():
     if digit == "1":
         response.add(
             xml.PlayElement(
-                "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                "https://github.com/megs-0308/plivo-ivr-demo/raw/refs/heads/main/demo_audio.mp3 "
             )
         )
     elif digit == "2":
